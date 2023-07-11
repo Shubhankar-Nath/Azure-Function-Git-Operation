@@ -1,0 +1,13 @@
+﻿{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "RepositoryUrl": "<<ReplaceThis>>",
+    "RepositoryUrl2": "<<ReplaceThis>>\",",
+    "TargetFolder": "D:\\wiki_dump",
+    "ADOPATToken": "<<ReplaceThis>>",
+    "ADOUsername": "<<ReplaceThis>>",
+    "DirectoryDeleteThreshold": 1
+  }
+}

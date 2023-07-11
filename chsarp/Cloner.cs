@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using LibGit2Sharp;
 using System.Diagnostics;
 using System.IO;
+using SharpGit;
 
 namespace wiki_cloner
 {
@@ -15,13 +16,19 @@ namespace wiki_cloner
         public void Run([TimerTrigger("0 */5 * * * *")]TimerInfo myTimer, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+            var targetFolder = Environment.GetEnvironmentVariable("TargetFolder");
+            var repositoryUrl = Environment.GetEnvironmentVariable("RepositoryUrl");
+            var repositoryUrl2 = Environment.GetEnvironmentVariable("RepositoryUrl2");
+            string patToken = Environment.GetEnvironmentVariable("ADOPATToken");
+            string username = Environment.GetEnvironmentVariable("ADOUsername");
+            int DirectoryDeleteThresholdInMins;
+            if (!int.TryParse(Environment.GetEnvironmentVariable("DirectoryDeleteThreshold"), out DirectoryDeleteThresholdInMins))
+            {
+                DirectoryDeleteThresholdInMins = 30;
+            }
+                
             try
             {
-                var targetFolder = Environment.GetEnvironmentVariable("TargetFolder");
-                var repositoryUrl = Environment.GetEnvironmentVariable("RepositoryUrl");
-                var repositoryUrl2 = Environment.GetEnvironmentVariable("RepositoryUrl2");
-                string patToken = Environment.GetEnvironmentVariable("ADOPATToken");
-                string username = Environment.GetEnvironmentVariable("ADOUsername");
 
                 if (string.IsNullOrEmpty(repositoryUrl) || string.IsNullOrEmpty(targetFolder) || string.IsNullOrEmpty(patToken))
                 {
@@ -34,15 +41,32 @@ namespace wiki_cloner
                 string folderPath = Path.Combine(targetFolder, folderName);
                 Directory.CreateDirectory(folderPath);
                 log.LogInformation($"Starting cloning repository {repositoryUrl} into {folderPath}.");
-
+                UseLibGitMethod( folderPath,  username,  patToken,  repositoryUrl,  log);
             }
             catch (Exception ex)
             {
                 log.LogError(ex, "Error cloning repository.");
             }
+            finally
+            {
+                // To delte folders older than a certin time threshold
+                DirectoryInfo directoryInfo = new DirectoryInfo(targetFolder);
+                DirectoryInfo[] directories = directoryInfo.GetDirectories();
+
+                foreach (var directory in directories)
+                {
+                    TimeSpan elapsed = DateTime.Now - directory.LastWriteTime;
+                    if (elapsed > TimeSpan.FromMinutes(DirectoryDeleteThresholdInMins))
+                    {
+                        // Delete the folder
+                        directory.Delete(true);
+                        log.LogDebug($"Deleted folder: {directory.FullName}");
+                    }
+                }
+            }
         }
 
-        //Uses the LibGit2Sharp
+        //Uses the LibGit2Sharp library
         private void UseLibGitMethod(string folderPath,string username, string patToken, string repositoryUrl, ILogger log)
         {
             if (Repository.IsValid(folderPath))

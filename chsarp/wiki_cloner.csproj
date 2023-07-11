@@ -6,6 +6,7 @@
   <ItemGroup>
     <PackageReference Include="LibGit2Sharp" Version="0.27.2" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
+    <PackageReference Include="SharpGit" Version="1.3000.20" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
